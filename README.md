@@ -15,7 +15,7 @@
 
 ## Etape 1
 
-A compléter
+projet math-appliquée
 
 ## Etape 2
 
