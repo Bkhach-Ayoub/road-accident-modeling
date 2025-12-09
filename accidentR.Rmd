@@ -19,17 +19,26 @@ knitr::opts_chunk$set(echo = TRUE)
 On lit les données dans le tableau `df` de la manière suivante
 
 ```{r}
-df = read.csv2("/user/0/beggarr/equipe_15/ONISR-2019.csv")
+df = read.csv2("/user/0/beggarr/equipe_15/ONISR-2019.csv",sep=",")
 View(df)
 head(df)
+str(df)
 ```
 
 ## Including Plots
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-
+```{r}
+df$S_sevérité <- (9*df$nb_tue+3*df$nb_hospitalise+df$nb_blesse)/13*100
+max(df$nb_blesse)
+max(df$nb_hospitalise)
+max(df$nb_tue)
+max(df$S_sevérité)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+View(df)
+head(df)
+```
