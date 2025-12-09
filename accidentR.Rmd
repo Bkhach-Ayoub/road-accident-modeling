@@ -1,0 +1,35 @@
+---
+title: "accident"
+lang: fr
+date: ""
+output:
+  pdf_document:
+    toc: false
+  html_document:
+    toc: true
+    toc_float: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+On lit les données dans le tableau `df` de la manière suivante
+
+```{r}
+df = read.csv2("/user/0/beggarr/equipe_15/ONISR-2019.csv")
+View(df)
+head(df)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
