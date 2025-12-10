@@ -1,0 +1,119 @@
+---
+title: "accident"
+lang: fr
+date: ""
+output:
+  pdf_document:
+    toc: false
+  html_document:
+    toc: true
+    toc_float: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+On lit les données dans le tableau `df` de la manière suivante
+
+```{r}
+df = read.csv2("ONISR-2019.csv",sep=",")
+
+head(df)
+str(df)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+df$S_sevérité <- (9*df$nb_tue+3*df$nb_hospitalise+df$nb_blesse)/13*100
+max(df$nb_blesse)
+max(df$nb_hospitalise)
+max(df$nb_tue)
+max(df$S_sevérité)
+```
+
+```{r}
+df$lum   <- factor(df$lum)    # lumière : plein jour / nuit...
+df$atm   <- factor(df$atm)    # météo
+df$agg   <- factor(df$agg)    # hors agglo / en agglo
+df$catr  <- factor(df$catr)   # type de route
+df$circ  <- factor(df$circ)   # régime de circulation
+df$col   <- factor(df$col)    # type de collision
+df$surf  <- factor(df$surf)   # état de la chaussée
+df$infra <- factor(df$infra)  # aménagement
+df$situ  <- factor(df$situ)   # situation de l'accident
+mod_complet <- lm(
+ S_sevérité ~ vma + lum + atm + agg + catr + circ +
+    col + surf + infra + situ +
+    nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport,
+  data = df
+)
+summary(mod_complet)
+
+```
+```{r}
+mod_simplifie <- step(mod_complet, direction = "both")
+summary(mod_simplifie)
+unique(df$lum)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+df$lum2 <- ifelse(df$lum %in% c("plein jour",
+                                "nuit avec eclairage allume"),
+                  "Avec_lumiere",
+                  "Sans_lumiere")
+
+df$atm3 <- ifelse(df$atm %in% c("normale", "couvert"),
+                  "Normal",
+           ifelse(df$atm %in% c("pluie legere", "eblouissant"),
+                  "Défavorable",
+           ifelse(df$atm %in% c("brouillard ou fumee",
+                                "neige ou grele",
+                                "vent fort ou tempete",
+                                "pluie forte"),
+                  "Sévère",
+                  NA)))   # pour les valeurs réellement NA dans df$atm
+
+df$col3 <- ifelse(df$col %in% c("deux veh - frontal",
+                                "3+ veh - en chaine",
+                                "3+ veh - multiple"),
+                  "Forte",
+           ifelse(df$col %in% c("deux veh - arriere",
+                                "deux veh - cote",
+                                "sans"),
+                  "Faible",
+                  ifelse(df$col == "autre", "Moyenne", NA)))
+
+df$vma3 <- cut(df$vma,
+               breaks = c(-Inf, 40, 80, Inf),
+               labels = c("0_40", "40_80", "80_plus"),
+               right = FALSE)
+df$situ2 <- ifelse(df$situ %in% c("chaussee",
+                                  "bande arret urgence",
+                                  "accotement",
+                                  "voie speciale"),
+                   "Circulation",
+                   ifelse(df$situ %in% c("trottoir",
+                                         "piste cyclable",
+                                         "autres"),
+                          "Hors_circulation",
+                          NA))
+
+df$situ2 <- factor(df$situ2)
+df$vma3 <- factor(df$vma3)
+df$col3 <- factor(df$col3, levels = c("Faible", "Moyenne", "Forte"))
+df$atm3 <- factor(df$atm3, levels = c("Normal","Défavorable","Sévère"))
+df$lum2 <- factor(df$lum2)
+
+mod_final = lm(S_sevérité ~ situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport + agg , data = df)
+
+summary(mod_final)
+
+```
