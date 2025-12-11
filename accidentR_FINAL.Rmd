@@ -119,3 +119,7 @@ mod_final = lm(S_sevérité ~ situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_m
 summary(mod_final)
 
 ```
+
+
+
+
