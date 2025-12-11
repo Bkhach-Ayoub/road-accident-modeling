@@ -119,6 +119,9 @@ mod_final = lm(S_sevérité ~ situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_m
 summary(mod_final)
 
 ```
+
+## MÉTHODE DE PARTITIONNEMENT (AVEC MODÈLE SIMPLIFIÉ) :
+
 ```{r}
 # Méthode du coude pour choisir k
 wss <- sapply(2:10, function(k){
@@ -131,12 +134,7 @@ plot(2:10, wss, type="b",
      main="Méthode du coude")
 ```
 
--  Le nombre optimal de clusters a été déterminé par la méthode du coude. Le graphe de l’inertie intra-classe montre une cassure nette à k = 4, ce qui justifie le choix de 4 groupes pour le partitionnement.
-
-
-Afin de déterminer le nombre optimal de groupes pour le partitionnement des accidents, nous avons utilisé la méthode du coude. Cette approche consiste à représenter l’évolution de l’inertie intra-classe (WSS – Within-cluster Sum of Squares) en fonction du nombre de clusters . L’inertie mesure la compacité des groupes formés : plus elle est faible, plus les clusters sont homogènes.
-Le graphe obtenu montre une diminution rapide de l’inertie entre  et , puis une stabilisation progressive au-delà. Ce comportement indique un point de cassure à , où l’ajout de nouveaux clusters n’apporte plus de gain significatif en homogénéité. Ce point est interprété comme le nombre optimal de clusters, car il offre un bon compromis entre complexité du modèle et qualité de regroupement.
-Nous avons donc retenu k = 4 comme nombre de groupes pour le partitionnement des accidents corporels, conformément aux recommandations méthodologiques en analyse de données.
+-   Le nombre optimal de clusters a été déterminé par la méthode du coude. Le graphe de l’inertie intra-classe montre une cassure nette à k = 3, ce qui justifie le choix de 4 groupes pour le partitionnement.
 
 ```{r}
 library(dplyr)
@@ -167,7 +165,7 @@ X_scaled <- scale(X_comp)
 ## 2) K-means avec k clusters
 ## ============================
 
-k <- 4   
+k <- 3
 
 set.seed(123)
 km <- kmeans(X_scaled, centers = k, nstart = 50)
@@ -255,5 +253,159 @@ View(resume_clusters)
 
 
 
+
+```
+
+Axe 1 = la combinaison des variables qui explique le plus de différences entre les accidents. Axe 2 = la deuxième combinaison qui explique le plus de différences, mais indépendante d’Axe 1.
+
+## MÉTHODE DE PARTITIONNEMENT (AVEC MODÈLE COMPLET) :
+
+```{r}
+## ============================
+## 1) Sélection des variables utiles
+## ============================
+
+vars <- c("lum","atm","agg","catr","circ","col","surf","infra","situ",
+          "nb_voiture","nb_moto","nb_velo","nb_camion","nb_transport")
+
+df_sub <- df[, vars]
+
+## ============================
+## 2) Encodage des facteurs en variables numériques
+## ============================
+
+X <- model.matrix(~ ., data = df_sub)[ , -1]   # -1 pour enlever l'intercept
+
+## ============================
+## 3) Filtrer uniquement les lignes complètes
+## ============================
+
+idx_comp <- complete.cases(X)
+X_comp <- X[idx_comp, ]
+
+## ============================
+## 4) Standardisation
+## ============================
+
+X_scaled <- scale(X_comp)
+
+## ============================
+## 5) Choix du nombre optimal de clusters (méthode du coude)
+## ============================
+
+wss <- sapply(1:10, function(k){
+  kmeans(X_scaled, centers = k, nstart = 20)$tot.withinss
+})
+
+plot(1:10, wss, type="b",
+     xlab="k (nombre de clusters)",
+     ylab="Inertie intra-classe (WSS)",
+     main="Méthode du coude")
+
+## ============================
+## 6) K-means avec k = 4 (ou autre valeur trouvée)
+## ============================
+
+k <- 3
+set.seed(123)
+km <- kmeans(X_scaled, centers = k, nstart = 50)
+
+## ============================
+## 7) Ajouter les clusters dans df
+## ============================
+
+df$cluster <- NA
+df$cluster[idx_comp] <- km$cluster
+df$cluster <- factor(df$cluster)
+
+## ============================
+## 8) Résumé des clusters
+## ============================
+
+library(dplyr)
+
+resume_clusters <- df[idx_comp, ] %>%
+  group_by(cluster) %>%
+  summarise(
+    n = n(),
+    lum_dominante  = names(which.max(table(lum))),
+    atm_dominante  = names(which.max(table(atm))),
+    col_dominante  = names(which.max(table(col))),
+    situ_dom       = names(which.max(table(situ))),
+    v_moy_voiture  = mean(nb_voiture, na.rm = TRUE),
+    v_moy_moto     = mean(nb_moto, na.rm = TRUE),
+    v_moy_velo     = mean(nb_velo, na.rm = TRUE),
+    v_moy_camion   = mean(nb_camion, na.rm = TRUE),
+    v_moy_transport= mean(nb_transport, na.rm = TRUE)
+  )
+
+print(resume_clusters)
+```
+
+```{r}
+## ============================
+## 1) ACP sur X_scaled
+## ============================
+
+acp <- prcomp(X_scaled, center = FALSE, scale. = FALSE)
+
+coord1 <- acp$x[,1]   # axe 1
+coord2 <- acp$x[,2]   # axe 2
+
+## ============================
+## 2) Couleurs pour les clusters
+## ============================
+
+colors <- c("red", "blue", "darkgreen", "purple",
+            "orange", "brown", "pink", "gray")
+
+## ============================
+## 3) Graphe final des groupes
+## ============================
+
+plot(coord1, coord2,
+     col = colors[km$cluster],
+     pch = 19,
+     cex = 0.6,
+     xlab = "Axe 1 (ACP)",
+     ylab = "Axe 2 (ACP)",
+     main = paste("Répartition des", length(unique(km$cluster)),
+                  "clusters (ACP + k-means)")
+)
+
+legend("topright",
+       legend = paste("Cluster", 1:length(unique(km$cluster))),
+       col    = colors[1:length(unique(km$cluster))],
+       pch    = 19,
+       cex    = 0.8)
+
+```
+
+## MÉTHODE DE PARTITIONNEMENT (AVEC MODÈLE SIMPLIFIÉ ET INCLUANT SÉVÉRITÉ) :
+
+```{r}
+vars <- c("lum2","atm3","surf","col3","situ2","vma3",
+          "nb_voiture","nb_moto","nb_velo","nb_camion","nb_transport",
+          "S_sevérité")   # <-- AJOUT ICI
+
+df_sub <- df[, vars]
+
+# Encodage dummies + suppression des NA
+X <- model.matrix(~ ., data = df_sub)[ , -1]
+idx_comp <- complete.cases(X)
+X_scaled <- scale(X[idx_comp, ])
+
+# K-means
+set.seed(123)
+km <- kmeans(X_scaled, centers = 3, nstart = 50)
+
+# ACP pour affichage
+acp <- prcomp(X_scaled, scale. = FALSE, center = FALSE)
+
+plot(acp$x[,1], acp$x[,2],
+     col = c("red","blue","darkgreen","purple")[km$cluster],
+     pch = 19, cex = 0.6,
+     xlab = "Axe 1 (ACP)", ylab = "Axe 2 (ACP)",
+     main = "Clusters incluant la sévérité")
 
 ```
