@@ -19,10 +19,20 @@ knitr::opts_chunk$set(echo = TRUE)
 On lit les données dans le tableau `df` de la manière suivante
 
 ```{r}
+library(dplyr)
+insee_clean <- read.csv2("donnees_departements.csv",sep=",") %>%
+
+ select(CODDEP,nb.cond)
 df = read.csv2("ONISR-2019.csv",sep=",")
 
-head(df)
-str(df)
+df_premium <- df %>%
+  left_join(insee_clean, by = c("dep" = "CODDEP"))
+
+
+head(df_premium)
+
+View(df_premium)
+head(df_premium)
 ```
 
 ## Including Plots
