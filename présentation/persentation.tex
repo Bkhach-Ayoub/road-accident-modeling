@@ -1,0 +1,231 @@
+\documentclass[11pt]{beamer}
+% =====================
+% Thème
+% =====================
+\usetheme{CambridgeUS}
+\usecolortheme{default}
+% =====================
+% Langue et encodage
+% =====================
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+% =====================
+% Maths et figures
+% =====================
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+% =====================
+% Infos du document
+% =====================
+\title{Modélisation de la sévérité et de la fréquence des accidents
+routiers}
+\author[Équipe 15]{%
+BKHACH Ayoub\\
+BEGGAR Rayane\\
+SABRI Yassir\\
+MARSOUK Ayoub
+}
+
+\institute[ENSIMAG]{%
+ENSIMAG\\[0.5em]
+\textbf{Encadrant :} Christophe Dutang
+}
+
+\date{\today}
+
+% =====================
+% Début du document
+% =====================
+\begin{document}
+
+% ---------- Slide de titre ----------
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ---------- Plan ----------
+\begin{frame}{Plan}
+  \tableofcontents
+\end{frame}
+
+% =====================
+% Section 1
+% =====================
+\section{Introduction}
+
+\begin{frame}{Contexte}
+\begin{itemize}
+  \item Présentation du problème
+  \item Motivation scientifique
+  \item Objectifs du travail
+\end{itemize}
+\end{frame}
+
+% =====================
+% Section 2
+% =====================
+\section{Score de sévérité}
+
+\begin{frame}{Définition du Score de sévérité et Modèle linéaire :}
+\begin{columns}
+
+\column{0.48\textwidth}
+\vspace{-0.5cm}
+\[
+\tcboxmath{
+S = \frac{9T + 3H + B}{13} \times 100
+}
+\]
+\column{0.48\textwidth}
+\vspace{-0.1cm}
+\[
+\tcboxmath{
+S = \beta_0 + \sum_{j=1}^{p} \beta_j X_j
+}
+\]
+
+\end{columns}
+\textbf{Exemples des variables explicatives : } Infrastructure (agglomération, type de route), Environnement (luminosité, conditions météorologiques), Accident (type de collision, nombre de véhicules impliqués et leurs types)
+
+\vspace{+0.2cm}
+\small
+\centering
+\begin{tabular}{l c c}
+\hline
+\textbf{Condition atmosphérique} & \textbf{Coefficient} & \textbf{p-valeur} \\
+\hline
+Brouillard / fumée        & $-4.73$ & $0.0025$ \\
+Couvert                  & $-3.95$ & $0.0016$ \\
+Éblouissant               & $-2.36$ & $0.0774$ \\
+Neige / grêle             & $+0.67$ & $0.7429$ \\
+Conditions normales       & $-4.60$ & $< 10^{-4}$ \\
+Pluie forte               & $-5.04$ & $< 10^{-4}$ \\
+Pluie légère              & $-5.56$ & $< 10^{-5}$ \\
+Vent fort / tempête       & $+0.58$ & $0.7569$ \\
+\hline
+\end{tabular}
+\end{frame}
+
+
+
+\begin{frame}{Modèle linéaire  simplifié :}
+\begin{itemize}
+    \item \textbf{Idée :} Uilisation de la fonction (step) et dimunier le nombre de variable selon le sens logique des mots et la p-valeur
+\end{itemize}
+
+\vspace{0.3cm}
+
+\textbf{Luminosité :}
+\[
+\begin{array}{ccl}
+\text{Plein jour} & \longrightarrow & \text{Avec lumière} \\
+\text{Nuit avec éclairage allumé} & \longrightarrow & \text{Avec lumière} \\
+\text{Nuit avec éclairage non allumé} & \longrightarrow & \text{Sans lumière} \\
+\text{Nuit sans éclairage} & \longrightarrow & \text{Sans lumière}
+\end{array}
+\]
+
+\vspace{0.4cm}
+
+\textbf{Conditions atmosphériques :}
+\[
+\begin{array}{ccl}
+\text{Normale, Couvert} & \longrightarrow & \text{Normal} \\
+\text{Pluie légère, Éblouissant} & \longrightarrow & \text{Défavorable} \\
+\text{Brouillard, Neige/Grêle, Vent fort, Pluie forte} & \longrightarrow & \text{Sévère}
+\end{array}
+\]
+
+\end{frame}
+
+\section{Les regroupements à l’aide de méthode de partitionnement}
+\begin{frame}{Répartition des clusters (avec modèle complet) : }
+\vspace{-0.1cm}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{répartition non simplifié .png}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Répartition des clusters (avec modèle simplifié et sans sévérité)}
+\vspace{-0.25cm}
+\begin{figure}
+        \centering
+        \includegraphics[width=1\linewidth]{répartition simplifié.png}
+\end{figure}
+\end{frame}
+\begin{frame}{Répartition des clusters (avec modèle simplifié et avec sévérité)}
+\vspace{-0.25cm}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{répartition simplifié avec sévérité.png}
+    \caption{Enter Caption}
+    \label{fig:placeholder}
+\end{figure}
+\end{frame}
+% =====================
+% freéquences
+% =====================
+\section{fréquences et modèle quasi poisson}
+\begin{frame}{fréquences par mois : }
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{fréquences par mois.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}{fréquences par departement : }
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{fréquences par département.png}
+    \caption{Enter Caption}
+    \label{fig:placeholder}
+\end{figure}
+\end{frame}
+% =====================
+% loi quasi pois
+% =====================
+\begin{frame}{Modèle en loi de poisson : }
+\begin{itemize}
+  \item \textbf{Intercept (554)}
+  \begin{itemize}
+    \item Niveau moyen mensuel d’accidents à Paris (situation de référence)
+  \end{itemize}
+
+  \item \textbf{Proportion d’accidents de nuit}
+  \begin{itemize}
+    \item Effet négatif marqué
+    \item $\Rightarrow$ Diminution du nombre d’accidents mensuels
+  \end{itemize}
+
+  \item \textbf{Météo défavorable} \; ($\exp(\beta)\approx 4{,}9$)
+  \begin{itemize}
+    \item Effet fortement positif
+    \item $\Rightarrow$ Forte augmentation du risque d’accident
+  \end{itemize}
+  \item \textbf{Collisions fortes} \; ($\exp(\beta)\approx 4{,}8$)
+  \begin{itemize}
+    \item Effet positif majeur
+    \item $\Rightarrow$ Accidents plus fréquents
+  \end{itemize}
+\end{itemize}
+\end{frame}
+% =====================
+% Conclusion
+% =====================
+\section{Conclusion}
+\begin{frame}{Conclusion}
+\begin{itemize}
+  \item Bilan
+  \item Limites
+  \item Perspectives
+\end{itemize}
+\end{frame}
+% ---------- Slide final ----------
+\begin{frame}
+\centering
+\Large Merci pour votre attention
+\end{frame}
+\end{document}

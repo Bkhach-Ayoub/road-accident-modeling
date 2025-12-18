@@ -68,6 +68,72 @@ summary(mod_complet)
 ```
 
 ```{r}
+# =========================
+# 1. Librairies
+# =========================
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# =========================
+# 2. Prédictions du modèle
+# =========================
+df <- df %>%
+  mutate(S_pred = predict(mod_complet, newdata = df))
+
+# =========================
+# 3. Calcul des sévérités
+# (observée et théorique)
+# pour chaque modalité de l'atmosphère
+# =========================
+df_atm <- df %>%
+  filter(!is.na(atm)) %>%
+  group_by(atm) %>%
+  summarise(
+    severite_observee  = mean(S_sevérité, na.rm = TRUE),
+    severite_theorique = mean(S_pred,     na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+# =========================
+# 4. Passage au format long
+# =========================
+df_atm_long <- df_atm %>%
+  select(atm, severite_observee, severite_theorique) %>%
+  pivot_longer(
+    cols = c(severite_observee, severite_theorique),
+    names_to = "type",
+    values_to = "severite"
+  ) %>%
+  mutate(
+    type = recode(
+      type,
+      severite_observee  = "Sévérité observée",
+      severite_theorique = "Sévérité théorique"
+    )
+  )
+
+# =========================
+# 5. Bar plot final
+# =========================
+ggplot(df_atm_long, aes(x = atm, y = severite, fill = type)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(
+    title = "Comparaison de la sévérité observée et théorique\nselon les conditions atmosphériques",
+    x = "Conditions atmosphériques",
+    y = "Score de sévérité"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x  = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  )
+
+```
+
+
+```{r}
 mod_simplifie <- step(mod_complet, direction = "both")
 summary(mod_simplifie)
 unique(df$lum)
@@ -127,6 +193,70 @@ df$lum2 <- factor(df$lum2)
 mod_final = lm(S_sevérité ~ situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport + agg , data = df)
 
 summary(mod_final)
+
+```
+```{r}
+# =========================
+# 1. Librairies
+# =========================
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# =========================
+# 2. Prédictions du modèle
+# =========================
+df <- df %>%
+  mutate(S_pred = predict(mod_final, newdata = df))
+
+# =========================
+# 3. Calcul des sévérités
+# observée et théorique
+# pour chaque modalité de lum2
+# =========================
+df_lum2 <- df %>%
+  filter(!is.na(lum2)) %>%
+  group_by(lum2) %>%
+  summarise(
+    severite_observee  = mean(S_sevérité, na.rm = TRUE),
+    severite_theorique = mean(S_pred,     na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+# =========================
+# 4. Passage au format long
+# =========================
+df_lum2_long <- df_lum2 %>%
+  select(lum2, severite_observee, severite_theorique) %>%
+  pivot_longer(
+    cols = c(severite_observee, severite_theorique),
+    names_to = "type",
+    values_to = "severite"
+  ) %>%
+  mutate(
+    type = recode(
+      type,
+      severite_observee  = "Sévérité observée",
+      severite_theorique = "Sévérité théorique"
+    )
+  )
+
+# =========================
+# 5. Bar plot final
+# =========================
+ggplot(df_lum2_long, aes(x = lum2, y = severite, fill = type)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(
+    title = "Comparaison de la sévérité observée et théorique\nselon la luminosité (lum2)",
+    x = "Luminosité (lum2)",
+    y = "Score de sévérité"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x  = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  )
 
 ```
 
@@ -432,7 +562,7 @@ library(dplyr)
 ```{r}
 vars <- c("lum2","atm3","surf","col3","situ2","vma3",
           "nb_voiture","nb_moto","nb_velo","nb_camion","nb_transport",
-          "S_sevérité")   # <-- AJOUT ICI
+          "S_sevérité")  
 
 df_sub <- df[, vars]
 
@@ -538,18 +668,6 @@ View(freq_norm_par_dep)
 ```
 
 ```{r}
-topN <- 15
-top_dep_norm <- freq_norm_par_dep %>% slice_head(n = topN)
-
-barplot(top_dep_norm$freq_pour_1000,
-        names.arg = top_dep_norm$dep,
-        las = 2,
-        ylab = "Accidents pour 1000 conducteurs",
-        main = paste("Top", topN, "départements – fréquence normalisée (2019)"))
-
-```
-
-```{r}
 deps_a_comparer <- c("38", "69", "75", "13")  # à modifier si besoin
 
 comparaison_norm <- freq_norm_par_dep %>%
@@ -619,8 +737,6 @@ table_frequence <- tab_accidents %>%
 
 table_frequence$nb_conducteurs = (table_frequence$nb_conducteurs / table_frequence$nb_accidents)
 
-View(table_frequence)
-
 ```
 
 ```{r}
@@ -634,6 +750,9 @@ barplot(1000 * top7$frequence_par_conducteur,
         ylab = "Fréquence par 1000 conducteur",
         xlab = "département",
         main = "Top 7 des départements par fréquence d'accidents (2019)")
+
+```
+```{r}
 
 ```
 

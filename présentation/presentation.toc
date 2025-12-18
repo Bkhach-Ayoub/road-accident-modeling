@@ -1,5 +1,0 @@
-\babel@toc {french}{}\relax 
-\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
-\beamer@sectionintoc {2}{Modélisation}{4}{0}{2}
-\beamer@sectionintoc {3}{Résultats}{6}{0}{3}
-\beamer@sectionintoc {4}{Conclusion}{7}{0}{4}
