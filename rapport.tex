@@ -1,172 +1,375 @@
-%----------------------------------------------------------------------------------------------------------
-% 	The following Latex code is given as an example and not The example
-%	of using Latex to write report, memoir or thesis. 
-%
-%	Please visit the wikibook : https://fr.wikibooks.org/wiki/LaTeX
-% 
-%----------------------------------------------------------------------------------------------------------
-
 \documentclass[11pt,a4paper]{article}
 
-% package
-%symbole math de l'American Mathematical Society (AMS)
-\usepackage{amsfonts,amssymb,amsmath,amsthm}
-%utiliser les regles de typographie francaise
+% =========================
+% Mise en page (exigences)
+% =========================
+\usepackage[a4paper,left=2cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
-% accents 
-%\usepackage[applemac]{inputenc} %MAC encoding
-\usepackage[utf8]{inputenc} %UNIX encoding
-%\usepackage[ansinew]{inputenc} %WINDOWS encoding
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{float}
 
-%graphique
-\usepackage{color, graphicx, wrapfig, subcaption}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+\linespread{1.0} % interligne standard
 
-%citation
-\usepackage{natbib}
+% =========================
+% Maths et figures (optionnel)
+% =========================
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
 
-%reference hypertext
-\usepackage[pagebackref=false, hyperfootnotes=false]{hyperref}
+% =========================
+% Citations Auteur (année) + BibTeX
+% =========================
+\usepackage[authoryear,round]{natbib}
+\bibliographystyle{plainnat}
 
-%pour les url
-\usepackage{url}
-\urlstyle{sf}
-
-%plusieur colonne dans tableau
-% \multicolumn{nomb_col}{alignement}{contenu}
-% \multirow{nomb_ligne}{largeur}{contenu}
-\usepackage{multirow, multicol}
-
-
-% layout
-\usepackage[left=2cm, right=2cm, top=2.5cm, bottom=2.5cm]{geometry}
-
-
-
-
-% les macros generales - exemples
-
-%layout
-\newcommand{\HRuleTop}{\noindent\rule{\linewidth}{.5pt}}
-\newcommand{\HRuleBottom}{\rule{\linewidth}{.5pt}}
-\newcommand{\ligne}{\rule[2mm]{.3\textwidth}{0,5mm}\\}
-\newcommand{\myskip}{\vspace{\parskip}}
-\newcommand{\blank}{ \clearpage{\pagestyle{empty}\cleardoublepage} }
-
-%sets
-\newcommand{\R}{\mathbb R}
-\newcommand{\N}{\mathbb N}
-\newcommand{\Z}{\mathbb Z}
-\newcommand{\X}{\mathbb X}
-\newcommand{\C}{\mathbb C}
-\newcommand{\K}{\mathbb K}
-
-\newcommand{\calN}{\mathcal N}
-\newcommand{\calM}{\mathcal M}
-\newcommand{\calA}{\mathcal A}
-\newcommand{\calB}{\mathcal B}
-\newcommand{\calE}{\mathcal E}
-\newcommand{\calF}{\mathcal F}
-\newcommand{\calL}{\mathcal L}
-\newcommand{\calG}{\mathcal G}
-\newcommand{\calP}{\mathcal P}
-\newcommand{\calS}{\mathcal S}
-\newcommand{\calU}{\mathcal U}
-\newcommand{\barA}{\overline A}
-\newcommand{\barV}{\overline V}
-
-\newcommand{\bA}{\boldsymbol{A}}
-\newcommand{\bB}{\boldsymbol{B}}
-\newcommand{\bC}{\boldsymbol{C}}
-\newcommand{\bD}{\boldsymbol{D}}
-\newcommand{\bH}{\boldsymbol{H}}
-\newcommand{\bL}{\boldsymbol{L}}
-\newcommand{\bM}{\boldsymbol{M}}
-\newcommand{\bN}{\boldsymbol{N}}
-\newcommand{\bP}{\boldsymbol{P}}
-\newcommand{\bQ}{\boldsymbol{Q}}
-\newcommand{\bR}{\boldsymbol{R}}
-\newcommand{\bT}{\boldsymbol{T}}
-\newcommand{\bU}{\boldsymbol{U}}
-\newcommand{\bX}{\boldsymbol{X}}
-
-\newcommand{\bzero}{\boldsymbol{0}}
-\newcommand{\be}{\boldsymbol{e}}
-\newcommand{\bff}{\boldsymbol{f}}
-\newcommand{\bI}{\boldsymbol{I}}
-\newcommand{\bx}{\boldsymbol{x}}
-\newcommand{\by}{\boldsymbol{y}}
-\newcommand{\bz}{\boldsymbol{z}}
-\newcommand{\bt}{\boldsymbol{t}}
-
-
-%text style
-\newcommand{\pkg}{\textbf}
-\newcommand{\sigle}{\textsc}
-\newcommand{\code}{\texttt}
-\newcommand{\soft}{\textsf}
-\newcommand{\expo}{\textsuperscript}
-
-%_____________ avec couleur _____________ 
-\newcommand{\cyan}[1]{{\color{cyan}#1}}
-\newcommand{\red}[1]{{\color{red}#1}}
-\newcommand{\blue}[1]{{\color{blue}#1}}
-
-
-
-%math operator
-\newcommand{\abs}[1]{\left\lvert#1\right\overt}
-\newcommand{\bigo}[1]{\mathcal O \hskip -0,2em \left(#1\right)}
-\DeclareMathOperator{\Ker}{Ker}
-\newcommand{\littleo}[1]{o\hskip -0,2em \left(#1\right)}
-\DeclareMathOperator{\mat}{mat}
-\DeclareMathOperator{\rg}{rg}
-\DeclareMathOperator{\sign}{sign}
-\DeclareMathOperator{\Sp}{Sp}
-\DeclareMathOperator{\Tr}{Tr}
-\DeclareMathOperator{\vect}{vect}
-
-
-\title{NOM DU PROJET A REMPLIR}
-\author{NOM DES ETUDIANT(E)S}
-
+% =========================
+% Infos document
+% =========================
+\title{\textbf{Modélisation de la sévérité et de la fréquence des accidents routiers}\\
+\large Exploitation des données ONISR -- année 2019}
+\author{
+BEGGAR Rayane \\
+BKHACH Ayoub \\
+MARSOUK Ayoub \\
+SABRI Yassir
+}
+\date{\today}
 
 \begin{document}
 
-\maketitle
+% =========================
+% Page de garde
+% =========================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
 
+    {\LARGE \textbf{Modélisation de la sévérité et de la fréquence des accidents routiers}\par}
+    \vspace{0.4cm}
+    {\Large Exploitation des données ONISR -- année 2019\par}
+
+    \vspace{2cm}
+
+    {\large \textbf{Equipe 15}\par}
+    \vspace{0.5cm}
+    {\large
+    BEGGAR Rayane \par
+    BKHACH Ayoub \par
+    MARSOUK Ayoub \par
+    SABRI Yassir \par
+    }
+
+    \vfill
+
+    {\large \textbf{Date :} \today\par}
+
+    \vspace*{1cm}
+\end{titlepage}
+
+% =========================
+% Table des matières
+% =========================
 \tableofcontents
+\newpage
+
+% =========================
+% Plan du rapport (structure)
+% =========================
 
 \section{Introduction}
+En France,Les accidents de la route constituent un problème de santé,un problème même pour les autorités et la société tout entière. On ne peut nier les énormes progrès depuis les années quatre vingts : les voitures sont devenues plus sûres grâce aux avancées technologiques, la réglementation s'est durcie avec l'introduction de mesures comme le port obligatoire de la ceinture ou les limitations de vitesse renforcées, et les campagnes de prévention n'ont cessé de se multiplier pour sensibiliser le grand public. Résultat ? le taux de mortalité sur les routes a baissé, passant â des valeurs moins inquiétantes.
 
-\red{A faire}
+Mais voilà, ces dernières années, on observe que la courbe stagne. Malgré tous les efforts , on ne parvient plus à faire baisser significativement le nombre d'accidents.Chaque accident entraîne des dégâts physiques et psychologiques,sans parler du coût économique et collectif : soins médicaux, impacts sur les infrastructures....C'est toute la société qui en souffre.
+On se doit donc de faire mieux que de simples analyses. D'aller plus loin,pour comprendre ce qui se passe sur nos routes,et la raison pour laquelle certains accidents sont plus graves que d'autres, Quels sont les acteurs qui participent explicitement? : l'alcool, la vitesse, l'agglomération, les conditions météo, le type de route ? Y a-t-il des profils d'usagers ou des situations qui présentent un risque accru ? Comment la fréquence des accidents varie t elle selon chaque métropole,chaque département? 
 
-ma super équation
-$$
-\int_0^1xdx=\frac12.
-$$
+La modélisation statistique constitue ainsi un outil essentiel pour mieux comprendre l’accidentologie routière, trouver les déterminants d'un "risque" et contribuer. En usant des données disponibles,et en faisant nos propres analyses  on peut retrécir le cadre du problème avec précision.L'enjeu est de taille : mieux on comprend les mécanismes des accidents, mieux on peut agir pour les prévenir. On peut imaginer des solutions qui dépendent de la réalité qui se concentrent sur les facteurs les plus significatifs.
 
-
-
-\section{Une section} \label{monlabel}
+\section{Construction d’un score de sévérité des accidents}
 
 
+\subsection{Définition du score de sévérité}
+
+\paragraph{Objectif.}
+Afin de comparer la gravité des accidents et de garder que les variables quantitatives qui peuvent être utilisées dans nos
+analyses variées, nous commencerons par construire un indicateur raisonnable de sévérité à partir des informations
+disponibles dans la base : nombre de tués ($n_{\text{tués}}$), blessés hospitalisés ($n_{\text{hospitalisés}}$) et
+blessés ($n_{\text{blessés}}$). L’objectif est d’obtenir des résultats et des prédictions justes permettant d’ordonner les accidents
+selon leur gravité, tout en restant dans un cadre simple  (modèle linéaire).
+
+\paragraph{Principe de construction.}
+Le score est défini comme une combinaison pondérée de ces trois composantes, avec des poids respectant
+l'ordre de gravité : un décès est considéré plus grave qu’une hospitalisation, elle-même plus grave
+qu’une blessure légère.
+Le score de sévérité se définit donc comme étant :
+\begin{equation}
+S_{\text{sévérité}} =
+\frac{9\,n_{\text{tués}} + 3\,n_{\text{hospitalisés}} + 1\,n_{\text{blessés}}}{13}\times 100 .
+\label{eq:score_severite}
+\end{equation}
+
+\paragraph{Interprétation.}
+Un accident ayant un score plus élevé correspond à une situation plus grave, car il implique relativement
+plus de décès et/ou d’hospitalisations. Cette construction nous donne donc  une variable homogène, qui peut être utilisée directement dans notre modèle linéaire pour étudier les facteurs associés à la gravité.                                                                               
+\paragraph{Limites.}
+Ce score repose sur notre choix pour les pondérations qui est intuitif et méthodique; il ne prétend
+pas représenter une mesure médicale exhaustive et exacte de la gravité. De plus, l’indicateur ne prend pas en compte
+d’autres dimensions potentiellement importantes (âge des victimes, nature des lésions, durée
+d’hospitalisation, etc.), non disponibles dans la base utilisée.
+
+\subsection{Optimisation d’un modèle linéaire expliquant le score de sévérité}
+
+Cette partie a pour but d'étudier les éléments donc les facteurs associés à la gravité des accidents, mesurée par notre score de
+sévérité défini précédemment. Notre approche repose sur l’ajustement de modèles linéaires reliant ce
+score à des variables décrivant le contexte de l’accident \citep{Saporta2011}, l’environnement de circulation, les
+caractéristiques de l’infrastructure et la composition des véhicules impliqués. Afin d’avoir à la fin à un
+modèle facile à être interpréter, on a du comparer plusieurs spécifications de ce modèle.
+
+\subsubsection{Modèle linéaire complet intégrant l’ensemble des variables explicatives}
+
+Tout d'abord,on a commencé par un modèle linéaire complet , ajusté en utilisant toutes les variables présentes dans la base de données. Ce modèle prend en compte des variables liées à la luminosité, la météo, à la situation de l'accident en agglomération ou hors agglomération, aux spécificités de l'infrastructure routière, ainsi qu'au nombre de véhicules impliqués en fonction de leur type.
 
 
-\section{Conclusions}\label{conclusions}
-
-exemple de citation de citation \cite{doe} vers une référence.
-
-Une vraie citation : \cite[Chap. 4]{nist10}
+Cette approche exhaustive permet d'évaluer l'effet de chacun de ces facteurs sur le score de sévérité, en augmentant le coût de ce modèle avec un grand nombre de paramètres ,ce qui le rendera redondant ou indiffèrent,à cause de  certaines variables explicatives.
 
 
+\subsubsection{Simplification du modèle par une procédure de sélection de type stepwise}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  Bibiliography.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibliographystyle{agsm}  
-\clearpage
-\phantomsection %add a phantom section for the hyperreference linkg
-\addcontentsline{toc}{section}{Bibliographie} %add a chapter to the TOC
-\bibliography{Ref}   %must have a file named Ref.bib
+Une procédure de sélection
+automatique de variables de type \textit{stepwise} a été appliquée pour diminuer la complexité du modèle initial . Cette méthode consiste à comparer
+différentes combinaisons de variables explicatives afin de retenir la combinaison la plus effective,
+tout en conservant la partie explicative du score de sévérité.
+
+Cette étape permet
+alors de trouver une association de variables dont la gravité des accidents apparaît avoir un poids, en éliminant celles dont l’apport est limité ou redondant dans le modèle complet.
+
+\subsubsection{Modèle final après regroupement et simplification des modalités}
+
+Dans un second temps, les variables qualitatives retenues sont reformulées par regroupement de
+certaines modalités. Les conditions d’éclairage, les conditions météorologiques, le type de collision,
+les classes de vitesse maximale autorisée et la situation de l’accident sont ainsi recodées en catégories
+plus simples et organisées. 
+
+Cette simplification vise à faciliter l’interprétation des coefficients du modèle,
+sans modifier les données initiales. Le modèle linéaire final est alors estimé à partir
+de ces variables recodées (ou fusionnées), en conservant également les variables quantitatives décrivant la composition
+des véhicules impliqués. Ce résultat final constitue donc un modèle enrichit plus simple avec un minimum de variables utilisées,
+
+
+\subsubsection{Comparaison des différentes spécifications du modèle}
+
+La comparaison des différentes spécifications du modèle linéaire met en évidence l’intérêt de la démarche adoptée
+qui vise à avoir à la fin un modèle plus simple non exhaustif.
+Le modèle complet contenant l’ensemble des variables disponibles, est sans aucun doute exhaustive (prend plus de temps pour la compilation) mais à permis de discerner les facteurs qui peuvent être
+associés à la sévérité des accidents. On ne peut donc utiliser le modèle complet pour la suite vue la redondance ou la futilité de certaines variables.
+
+La procédure de sélection de type \textit{stepwise} permet de réduire cette complexité en identifiant une
+combinaison de variables les plus directement liées au score de sévérité. Cette étape à permis une
+spécification plus précise, tout en conservant l'explication satisfaisante. Elle n'a laissé que les variables dont l’apport est le plus stable dans l’explication de la gravité,mais on remarque quand même l'existence de quelque variables dont l'effet est le même.  
+
+C'est pourquoi à la fin, on a finit par le modèle basé sur le regroupement des variables proches,qui se distingue par la meilleure explication
+des résultats. La simplification des variables a permis de faciliter l’interprétation des
+coefficients, sans modifier la nature des informations exploitées. Cette formulation constitue une
+fusion des deux approches précédentes : elle conserve les facteurs identifiés comme précis
+tout en simplifiant la complexité de l’analyse. Dans la suite du rapport, ce modèle est adopté comme la base
+d’interprétation des facteurs de la sévérité des accidents.
+
+\section{Typologie des accidents par partitionnement (k-means)}
+
+\subsection{Choix du nombre de clusters par la méthode du coude}
+
+Le choix du nombre de clusters constitue une étape centrale dans la mise en œuvre de l’algorithme
+\textit{k-means} \citep{Kassambara2017}, car il conditionne directement la structure du partitionnement obtenu. Afin de guider ce
+choix de manière objective, nous utilisons la méthode du coude, qui repose sur l’analyse de l’évolution
+de l’inertie intra-classe (\textit{Within-Cluster Sum of Squares}, WSS) en fonction du nombre de clusters
+considéré.
+
+Cette méthode a été appliquée aux deux configurations étudiées dans ce travail, à savoir le
+partitionnement fondé sur un ensemble de variables simplifiées et celui reposant sur un ensemble de
+variables plus complet. Dans les deux cas, la figure représentant la WSS en fonction de $k$ présente
+une allure comparable : l’inertie intra-classe décroît fortement pour les premières valeurs de $k$, puis
+la diminution devient nettement plus progressive au-delà d’un certain seuil. Cette rupture de pente,
+caractéristique de la méthode du coude, indique que l’ajout de clusters supplémentaires n’apporte
+qu’un gain marginal en termes d’homogénéité des groupes.
+
+L’observation de cette cassure conduit à retenir une valeur de $k$ correspondant à un compromis entre
+la qualité du partitionnement et la complexité du modèle. Le nombre de clusters choisi permet ainsi de
+capturer l’essentiel de la structure des données sans introduire une segmentation excessive, difficile
+à interpréter. Ce choix est cohérent dans les deux configurations considérées et sert de base aux
+analyses de typologie présentées dans la suite du rapport.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.91 \linewidth]{Capture d'écran 2025-12-13 130644.png}
+    \caption{Évolution de l’inertie intra-classe en fonction du nombre de clusters
+    (méthode du coude).}
+    \label{fig:coude}
+\end{figure}
+
+
+
+\subsection{Étude du partitionnement k-means}
+
+L’étude du partitionnement par l’algorithme \textit{k-means} vise à mettre en évidence des profils typiques
+d’accidents à partir d’un ensemble de variables décrivant le contexte, l’environnement et la composition
+des véhicules impliqués. Cette approche non supervisée permet d’explorer la structure interne des
+données sans imposer avant de classification fondée sur la sévérité ou la localisation géographique.
+
+\subsubsection{Préparation des données}
+
+Avant l’application de l’algorithme, les variables choisies sont transformées en
+variables numériques à l’aide d’un encodage qui leur donne la forme de variables indicatrices. Cette étape permet de
+utiliser les informations telles que les conditions d’éclairage, les conditions
+atmosphériques, le type de collision, la situation de l’accident ou les classes de vitesse maximale
+autorisée. Les observations présentant des valeurs manquantes sur ces variables sont écartées du calcul
+du partitionnement pour avoir un algorithme valide. Ajoutons que
+l’ensemble des variables est standardisé pour pouvoir les comparer et éviter qu’une variable à
+forte variance domine la combinaison des groupes.
+
+\subsubsection{Application de l’algorithme k-means}
+
+Une fois les données prêtes, l’algorithme \textit{k-means} est appliqué avec le nombre de clusters
+retenu par la méthode du coude. Chaque accident est alors affecté à un groupe de façon que
+ l’inertie intra-classe globale est minimisée. Afin d’améliorer la stabilité du partitionnement, l’algorithme
+est relancé à partir de plusieurs initialisations différentes, et la solution menant à la plus faible
+inertie est celle qu'on a gardé. Cette procédure permet d’obtenir une bonne classification ,
+qui regroupe les accidents similaires avec une forte précision.
+
+\subsubsection{Visualisation du partitionnement sur un plan factoriel}
+
+Pour faciliter l’interprétation des résultats, le partitionnement obtenu est représenté sur un plan
+factoriel en faisant une analyse des composantes principales qui sera appliqué aux données standardisées. La
+projection des accidents sur les deux premiers axes permet de visualiser la structure globale des
+groupes et même le degré de séparation,on rappelle que cette représentation constitue une
+approximation en dimension réduite. Les centres des clusters sont également projetés sur ce plan, ce
+qui permet d’illustrer la position moyenne de chaque groupe et de comparer les profils relatifs des
+clusters identifiés,et puis introduire (prédire) l'accident dans le groupe auquel il appartient.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Capture d'écran 2025-12-13 190134.png}
+    \caption{Représentation du partitionnement en trois clusters obtenu par k-means}
+    \label{fig:placeholder}
+\end{figure}
+Une projection sur les deux premiers axes d’une analyse en composantes principales permet de visualiser
+la structure des groupes et la séparation relative entre clusters.
+\subsection{Lecture des centres et profils des clusters}
+Afin de caractériser plus précisément chaque cluster, les profils sont aussi décrits à partir des
+aspects dominants par des variables et leurs valeurs moyennes
+. Cette lecture permet d’associer à chaque groupe un profil donc un type d’accident,sans avoir à faire des calculs complexes . Les clusters obtenus doivent ainsi être interprétés
+comme faisant partie d'un groupe, utiles pour remarquer la diversité des situations observées,
+plutôt que comme des catégories strictes et inchangeables.
+L’interprétation des clusters repose sur l’analyse des centres des groupes obtenus par l’algorithme k-means, projetés dans l’espace des variables explicatives. Les résultats montrent que les trois clusters identifiés présentent des conditions d’accident très similaires : dans tous les cas, la modalité dominante est \textit{plein jour} pour l’éclairage, \textit{normale} pour les conditions atmosphériques, \textit{autre} , et \textit{chaussée} pour la situation. Ces similitudes traduisent une forte homogénéité des conditions générales d’accident dans la base étudiée, ce qui limite le pouvoir discriminant des variables qualitatives.
+Les différences entre clusters apparaissent principalement au niveau des variables quantitatives décrivant la composition des véhicules impliqués. Le \textbf{cluster 1} se distingue par une proportion légèrement plus élevée de motos (0.358 contre 0.346 dans les autres groupes), ce qui pourrait refléter une typologie d’accidents plus fréquente en milieu urbain dense ou impliquant des deux-roues. Le \textbf{cluster 3}, quant à lui, présente des moyennes légèrement supérieures pour les vélos (0.0857) et les camions (0.0375), suggérant une configuration plus mixte ou périurbaine, avec une diversité accrue des types de véhicules. Le \textbf{cluster 2}, le plus nombreux, présente des valeurs intermédiaires et peut être interprété comme le groupe de référence, correspondant au profil d’accident le plus courant dans les données.
+Ces différences, bien que ténues, montrent que le partitionnement a permis de capter des variations fines dans la composition des accidents, malgré une forte homogénéité des conditions externes. Les clusters obtenus doivent ainsi être interprétés comme des regroupements descriptifs, utiles pour trouver la diversité des configurations observées, plutôt que comme des catégories strictes ou uniques.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Capture d'écran 2025-12-13 190153.png}
+    \caption{Projection des centres des clusters sur le plan factoriel (ACP).}
+    \label{fig:placeholder}
+\end{figure}
+\section{Analyse de la fréquence des accidents}
+
+\subsection{Définition de la fréquence dans le cadre de l’étude}
+
+Dans notre étude, on a défini la fréquence des accidents routiers comme une mesure,un critère qui a pour but comparer
+l’accidentalité entre territoires en tenant compte de leur exposition probable au risque. Plutôt que
+de s’appuyer uniquement sur le nombre brut d’accidents, la fréquence est construite comme le rapport
+entre le nombre d’accidents observés dans un département et le nombre de conducteurs associés à ce
+territoire. Notre approche permet de limiter les biais liés aux différences de taille ou de population
+entre départements.
+
+Le nombre de conducteurs n’étant pas directement disponible dans la base des accidents, on était obligé d'aller chercher ailleurs (\texttt{INSEE}) afin d’estimer cette quantité. Un tableau complémentaire (\texttt{df\_premium})
+a été ainsi fusionné avec les données principales par une opération de fusion basée sur le code du département.
+Ce tableau fournit une estimation du nombre de personnes susceptibles de conduire, issue de données
+démographiques trouvées.
+
+Afin d’approcher le nombre effectif de conducteurs, on a décidé de adopter une hypothèse sur la proportionnalité de l’échantillon:
+seule une fraction de la population considérée est supposée détenir un permis de conduire et utiliser
+un véhicule. Cette fraction est fixée à un coefficient constant égal à 0{,}65, appliqué 
+uniformément à l’ensemble des départements. Le nombre de conducteurs utilisé dans le calcul de la fréquence
+est ainsi obtenu par une transformation proportionnelle des données démographiques .
+
+La fréquence est alors définie comme le rapport entre le nombre d’accidents et le nombre estimé de
+conducteurs, et peut être interprétée comme une probabilité moyenne d’occurrence d’un accident par
+conducteur sur l’année 2019. Pour faciliter la lecture et les comparaisons, cette mesure a été aussi
+exprimée sous la forme d’un nombre d’accidents pour 1000 conducteurs. Cette normalisation constitue
+une amélioration par rapport au simple comptage, tout en restant une approximation de l’exposition au
+risque, dans la mesure où elle ne prend pas en compte l’intensité réelle de l’usage du réseau routier.
+
+
+
+\subsection{Comparaison entre départements}
+
+La fréquence des accidents permet de comparer l’accidentalité entre départements en tenant
+compte des différences de taille et d’exposition potentielle au risque. À partir de cette interprétation, les
+départements sont classés selon leur nombre d’accidents rapporté au nombre estimé de conducteurs,
+exprimé en accidents pour 1000 conducteurs.
+
+La figure présente les sept départements affichant les valeurs de fréquence les plus élevées en 2019.
+On observe des disparités marquées entre territoires, certains départements présentant une fréquence supérieure à la moyenne. Le département de Paris (75) apparaît en tête de ce
+classement, ce qui peut s’expliquer par des spécificités urbaines telles qu’une forte densité de trafic,
+une concentration élevée d’usagers et des interactions nombreuses entre différents modes de
+déplacement.
+
+Les autres départements figurant parmi les plus exposés présentent également des contextes
+particuliers, notamment en termes de densité urbaine, de structure du réseau routier ou de pratiques de
+mobilité. Ces résultats illustrent l’intérêt de la normalisation par le nombre de conducteurs, qui met en
+évidence des différences territoriales moins visibles à partir des seuls effectifs bruts d’accidents. Ils
+doivent toutefois être interprétés avec prudence, la mesure de l’exposition reposant sur une estimation
+du nombre de conducteurs et ne prenant pas en compte l’intensité réelle de l’usage du réseau routier.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Capture d'écran 2025-12-13 193757.png}
+    \caption{Projection des centres des clusters sur le plan factoriel (ACP).}
+    \label{fig:placeholder}
+\end{figure}
+
+\subsection{Modélisation quasi-Poisson des fréquences d'accidents}
+\subsubsection{Département 75 (plus  fréquent): influence des variables sur la fréquence des accidents }
+
+Dans le département 75, caractérisé par une forte fréquence d'accidents, les variables explicatives montrent des effets agissant sur le nombre moyen d'accidents. La proportion d'accidents de nuit ($\beta = -7,69$, $\exp(\beta) \approx 0,00046$) est associée à une forte diminution du nombre attendu d'accidents. Les conditions météorologiques défavorables ($\beta = 1,41$, $\exp(\beta) \approx 4,10$) et les situations hors circulation ($\beta = 1,95$, $\exp(\beta) \approx 7,03$) entraînent une augmentation modérée du nombre moyen d'accidents. La proportion d'accidents sur routes principales ($\beta = 22,38$, $\exp(\beta) \approx 5,22 \times 10^9$) a un effet très important, tandis que la proportion d'accidents avec limitation de vitesse élevée ($\beta = 0,40$, $\exp(\beta) \approx 1,49$) reste faible.
+
+\subsubsection{Département 90 (moins fréquent): influence des variables sur la fréquence des accidents}
+Dans le département 90, caractérisé par une faible fréquence d'accidents, les mêmes variables ont une influence beaucoup moins prononcée. La proportion d'accidents de nuit ($\beta = 0,44$,$\exp(\beta)\approx 1,55$)  et les conditions météorologiques défavorables ($\beta = 0,60$, $\exp(\beta) \approx 1,83$) ont un effet légèrement positif.  les situations hors circulation ($\beta = -0,72$, $\exp(\beta) \approx 0,49$) montrent un impact limité. La proportion d'accidents sur routes principales ($\beta = -0,01$, $\exp(\beta) \approx 0,99$) et la proportion d'accidents liés à des vitesses supérieures à 80 km/h ($\beta = -0,00005$, $\exp(\beta) \approx 1,00$) ont un effet quasiment nulle.
+\subsubsection{Comparaison entre les départements (accident plus fréquents vs moins fréquents)}
+
+La comparaison des deux départements montre que les coefficients et leurs effets multiplicatifs diffèrent fortement. Dans le département 75, les effets des variables sont forts et significatifs, notamment pour les routes principales et les conditions météorologiques défavorables. Dans le département 90, les effets sont faibles et proches de l'unité, indiquant que les variables explicatives ont une influence très limitée sur le nombre d'accidents. Cela souligne que l'importance relative des facteurs de risque dépend du contexte local et du régime de fréquence des accidents : un même facteur peut être déterminant dans un département fréquenté par des accidents et quasi négligeable dans un département où les accidents sont rares.
+\section{Conclusion}
+
+Ce travail s’appuie sur l’exploitation des données ONISR de l’année 2019 afin d’analyser l’accidentalité
+routière sous deux angles : la gravité des accidents et leur fréquence. La construction
+d’un score de sévérité a permis de concrétiser l’information relative aux conséquences humaines des
+accidents et de disposer d’une variable quantitative adaptée à des analyses multivariées. L’ajustement
+de modèles linéaires a ensuite mis en évidence l’intérêt de notre démarche pas à pas, allant d’une
+méthode exhaustive à un modèle plus simple et facile à interpréter, basé sur un ensemble
+de variables précises.
+
+L’analyse non supervisée par partitionnement k-means a permis de proposer une analyse qui décrit bien les accidents, en identifiant des groupes caractérisés par des aspects distincts en termes de
+espace, d’environnement et de nombre et types des véhicules impliqués. La méthode du coude nous a donné une idée sur le choix du nombre de clusters, tandis que la projection sur un plan factoriel a
+facilité l’interprétation des profils et des centres des groupes obtenus. Cette approche a permis dans un premier temps de mettre en évidence
+la diversité des situations accidentelles.
+Enfin, l’étude de la fréquence des accidents a montré l’intérêt de normaliser par le nombre estimé
+de conducteurs, permettant une comparaison plus pertinente entre les départements. L’intégration de
+données externes est une amélioration par rapport au comptage brut des accidents, tout en soulignant les limites inhérentes à l’absence de la mesure
+directe de l’exposition au risque. Notre analyse faite sur le département de Paris et le département de Belfort illustre
+l’apport des modèles de comptage pour étudier les variations temporelles de l’accidentalité et leurs
+liens avec certaines caractéristiques contextuelles.
+
+Dans l’ensemble, ce travail souligne l’intérêt des méthodes statistiques et exploratoires pour
+mieux comprendre les mécanismes de l’accidentalité routière. Il souligne toutefois les limites liées à la nature des données disponibles et ouvre des perspectives d’amélioration, comme l’intégration d’indicateurs plus précis d’exposition au risque ou par l’étude d’évolutions temporelles sur plusieurs
+années.
+
+
+% =========================
+% Bibliographie
+% =========================
+\bibliographystyle{plainnat}
+\bibliography{biblio}
+
 
 \end{document}
