@@ -14,8 +14,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
 On lit les données dans le tableau `df` de la manière suivante
 
 ```{r}
@@ -29,15 +27,14 @@ df_premium <- df %>%
   left_join(insee_clean, by = c("dep" = "CODDEP"))
 
 
-head(df_premium)
 
 View(df_premium)
 head(df_premium)
 ```
 
-## Including Plots
+# SCORE DE SEVERITE :
 
-You can also embed plots, for example:
+## calcul du score de sévérité :
 
 ```{r}
 df$S_sevérité <- (9*df$nb_tue+3*df$nb_hospitalise+df$nb_blesse)/13*100
@@ -46,6 +43,10 @@ max(df$nb_hospitalise)
 max(df$nb_tue)
 max(df$S_sevérité)
 ```
+
+## modèle linéaire complet :
+
+### résumé
 
 ```{r}
 df$lum   <- factor(df$lum)    # lumière : plein jour / nuit...
@@ -57,26 +58,101 @@ df$col   <- factor(df$col)    # type de collision
 df$surf  <- factor(df$surf)   # état de la chaussée
 df$infra <- factor(df$infra)  # aménagement
 df$situ  <- factor(df$situ)   # situation de l'accident
+df$dep <- factor(df$dep)
+
+
 mod_complet <- lm(
  S_sevérité ~ vma + lum + atm + agg + catr + circ +
     col + surf + infra + situ +
-    nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport,
+    nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport + dep  ,
   data = df
 )
 summary(mod_complet)
 
 ```
 
+### comparaison entre résultats observés et théoriques du modèle complet :
+
 ```{r}
-mod_simplifie <- step(mod_complet, direction = "both")
-summary(mod_simplifie)
-unique(df$lum)
+# =========================
+# 1. Librairies
+# =========================
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# =========================
+# 2. Prédictions du modèle
+# =========================
+df <- df %>%
+  mutate(S_pred = predict(mod_complet, newdata = df))
+
+# =========================
+# 3. Calcul des sévérités
+# (observée et théorique)
+# pour chaque modalité de l'atmosphère
+# =========================
+df_atm <- df %>%
+  filter(!is.na(atm)) %>%
+  group_by(atm) %>%
+  summarise(
+    severite_observee  = mean(S_sevérité, na.rm = TRUE),
+    severite_theorique = mean(S_pred,     na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+# =========================
+# 4. Passage au format long
+# =========================
+df_atm_long <- df_atm %>%
+  select(atm, severite_observee, severite_theorique) %>%
+  pivot_longer(
+    cols = c(severite_observee, severite_theorique),
+    names_to = "type",
+    values_to = "severite"
+  ) %>%
+  mutate(
+    type = recode(
+      type,
+      severite_observee  = "Sévérité observée",
+      severite_theorique = "Sévérité théorique"
+    )
+  )
+
+# =========================
+# 5. Bar plot final
+# =========================
+ggplot(df_atm_long, aes(x = atm, y = severite, fill = type)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(
+    title = "Comparaison de la sévérité observée et théorique\nselon les conditions atmosphériques",
+    x = "Conditions atmosphériques",
+    y = "Score de sévérité"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x  = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  )
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## modèle simplifié par méthode step :
 
 ```{r}
+mod_simplifie <- step(mod_complet, direction = "both")
+summary(mod_simplifie)
+
+
+```
+
+## modèle simplifié par catégorisation :
+
+### Résumé :
+
+```{r}
+
 df$lum2 <- ifelse(df$lum %in% c("plein jour",
                                 "nuit avec eclairage allume"),
                   "Avec_lumiere",
@@ -118,17 +194,120 @@ df$situ2 <- ifelse(df$situ %in% c("chaussee",
                           "Hors_circulation",
                           NA))
 
+df$catr3 <- ifelse(df$catr %in% c("departementale", "metropole", "nationale", "autre"), 
+                   "Routes_significatives",
+                   ifelse(df$catr == "communale",
+                          "Routes_communales",
+                          ifelse(df$catr %in% c("parc", "hors reseau"),
+                                 "Autres_categories",
+                                 df$catr)))
+
+
+df$dep_densité <- ifelse(
+  df$dep %in% c("75", "92", "93", "94"),
+  "Tres_dense",
+  ifelse(
+    df$dep %in% c("13", "69", "33", "59", "31", "67", "44", "76", "34"),
+    "Dense",
+    ifelse(
+      df$dep %in% c("14", "27", "28", "35", "37", "41", "45", "49", "50", "56",
+                    "61", "72", "85", "86", "87"),
+      "Moyenne",
+      ifelse(
+        df$dep %in% c("03", "07", "08", "09", "10", "12", "15", "16", "19", "23",
+                      "24", "25", "32", "39", "40", "46", "48", "58", "63", "70",
+                      "79", "81", "82", "88", "89", "90"),
+        "Peu_dense",
+        "Intermediaire"
+      )
+    )
+  )
+)
+
+
+
 df$situ2 <- factor(df$situ2)
 df$vma3 <- factor(df$vma3)
 df$col3 <- factor(df$col3, levels = c("Faible", "Moyenne", "Forte"))
 df$atm3 <- factor(df$atm3, levels = c("Normal","Défavorable","Sévère"))
 df$lum2 <- factor(df$lum2)
-
-mod_final = lm(S_sevérité ~ situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport + agg , data = df)
+df$catr3 <- factor(df$catr3)
+df$dep_densité <- factor(df$dep_densité)
+mod_final = lm(S_sevérité ~ catr3 + situ2 + vma3 + col3 + atm3 + lum2 + nb_velo + nb_moto + nb_voiture + nb_camion + nb_transport + agg + dep_densité , data = df)
 
 summary(mod_final)
 
+
 ```
+
+### comparaison entre résultats observés et théoriques du modèle simplifié :
+
+```{r}
+# =========================
+# 1. Librairies
+# =========================
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# =========================
+# 2. Prédictions du modèle
+# =========================
+df <- df %>%
+  mutate(S_pred = predict(mod_final, newdata = df))
+
+# =========================
+# 3. Calcul des sévérités
+# observée et théorique
+# pour chaque modalité de lum2
+# =========================
+df_lum2 <- df %>%
+  filter(!is.na(lum2)) %>%
+  group_by(lum2) %>%
+  summarise(
+    severite_observee  = mean(S_sevérité, na.rm = TRUE),
+    severite_theorique = mean(S_pred,     na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+# =========================
+# 4. Passage au format long
+# =========================
+df_lum2_long <- df_lum2 %>%
+  select(lum2, severite_observee, severite_theorique) %>%
+  pivot_longer(
+    cols = c(severite_observee, severite_theorique),
+    names_to = "type",
+    values_to = "severite"
+  ) %>%
+  mutate(
+    type = recode(
+      type,
+      severite_observee  = "Sévérité observée",
+      severite_theorique = "Sévérité théorique"
+    )
+  )
+
+# =========================
+# 5. Bar plot final
+# =========================
+ggplot(df_lum2_long, aes(x = lum2, y = severite, fill = type)) +
+  geom_col(position = "dodge", width = 0.7) +
+  labs(
+    title = "Comparaison de la sévérité observée et théorique\nselon la luminosité (lum2)",
+    x = "Luminosité (lum2)",
+    y = "Score de sévérité"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x  = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  )
+
+```
+
+# PARTITIONNEMENT (k-means):
 
 ## MÉTHODE DE PARTITIONNEMENT (AVEC MODÈLE SIMPLIFIÉ) :
 
@@ -144,7 +323,7 @@ plot(2:10, wss, type="b",
      main="Méthode du coude")
 ```
 
--   Le nombre optimal de clusters a été déterminé par la méthode du coude. Le graphe de l’inertie intra-classe montre une cassure nette à k = 3, ce qui justifie le choix de 4 groupes pour le partitionnement.
+-   Le nombre optimal de clusters a été déterminé par la méthode du coude. Le graphe de l’inertie intra-classe montre une cassure nette à k = 3, ce qui justifie le choix de 3 groupes pour le partitionnement.
 
 ```{r}
 library(dplyr)
@@ -195,12 +374,27 @@ df_comp <- df[idx_complete, ]
 
 acp <- prcomp(X_scaled, center = FALSE, scale. = FALSE)  # déjà centré/réduit
 
+# Coordonnées des individus (axes 1 et 2)
+coord <- acp$x[, 1:2]
+
+# Centres des clusters dans le plan ACP
+centres_acp <- aggregate(coord,
+                          by = list(cluster = km$cluster),
+                          FUN = mean)
+
 coord1 <- acp$x[, 1]
 coord2 <- acp$x[, 2]
+
+# Centres des clusters dans le plan ACP
+centres_acp <- aggregate(coord,
+                          by = list(cluster = km$cluster),
+                          FUN = mean)
 
 # Couleurs pour les clusters (k <= longueur du vecteur)
 colors <- c("red", "blue", "darkgreen", "purple",
             "orange", "brown", "pink", "gray", "cyan", "magenta")
+
+
 
 plot(coord1, coord2,
      col  = colors[km$cluster],
@@ -210,11 +404,15 @@ plot(coord1, coord2,
      ylab = "Axe 2 (ACP)",
      main = paste("Partitionnement en", k, "clusters (ACP + k-means)"))
 
+points(centres_acp$PC1, centres_acp$PC2,
+       pch = 19, cex = 2, lwd = 2, col = "black")
+
 legend("topright",
-       legend = paste("Cluster", 1:k),
-       col    = colors[1:k],
-       pch    = 19,
-       cex    = 0.7)
+       legend = c(paste("Cluster", 1:k), "Centre"),
+       col    = c(colors[1:k], "black"),
+       pch    = c(rep(19, k), 19),
+       cex    = 0.6)
+
 
 ## ============================
 ## 4) Constitution des clusters
@@ -266,7 +464,8 @@ View(resume_clusters)
 
 ```
 
-Axe 1 = la combinaison des variables qui explique le plus de différences entre les accidents. Axe 2 = la deuxième combinaison qui explique le plus de différences, mais indépendante d’Axe 1.
+-   Axe 1 = la combinaison des variables qui explique le plus de différences entre les accidents.
+-   Axe 2 = la deuxième combinaison qui explique le plus de différences, mais indépendante d’Axe 1.
 
 ## MÉTHODE DE PARTITIONNEMENT (AVEC MODÈLE COMPLET) :
 
@@ -313,7 +512,7 @@ plot(1:10, wss, type="b",
      main="Méthode du coude")
 
 ## ============================
-## 6) K-means avec k = 4 (ou autre valeur trouvée)
+## 6) K-means avec k = 3 
 ## ============================
 
 k <- 3
@@ -349,8 +548,10 @@ resume_clusters <- df[idx_comp, ] %>%
     v_moy_transport= mean(nb_transport, na.rm = TRUE)
   )
 
-print(resume_clusters)
+resume_clusters
 ```
+
+-   représentation :
 
 ```{r}
 ## ============================
@@ -358,6 +559,15 @@ print(resume_clusters)
 ## ============================
 
 acp <- prcomp(X_scaled, center = FALSE, scale. = FALSE)
+
+# Coordonnées des individus (axes 1 et 2)
+coord <- acp$x[, 1:2]
+
+# Centres des clusters dans le plan ACP
+centres_acp <- aggregate(coord,
+                          by = list(cluster = km$cluster),
+                          FUN = mean)
+
 
 coord1 <- acp$x[,1]   # axe 1
 coord2 <- acp$x[,2]   # axe 2
@@ -383,11 +593,19 @@ plot(coord1, coord2,
                   "clusters (ACP + k-means)")
 )
 
+# Ajout des centres des clusters
+points(centres_acp$PC1, centres_acp$PC2,
+       pch = 19, cex = 2, lwd = 2, col = "black")
+
+
 legend("topright",
-       legend = paste("Cluster", 1:length(unique(km$cluster))),
-       col    = colors[1:length(unique(km$cluster))],
-       pch    = 19,
-       cex    = 0.8)
+       legend = c(paste("Cluster", 1:k), "Centre"),
+       col    = c(colors[1:k], "black"),
+       pch    = c(rep(19, k), 19),
+       cex    = 0.6)
+
+library(dplyr)
+
 
 ```
 
@@ -396,7 +614,7 @@ legend("topright",
 ```{r}
 vars <- c("lum2","atm3","surf","col3","situ2","vma3",
           "nb_voiture","nb_moto","nb_velo","nb_camion","nb_transport",
-          "S_sevérité")   # <-- AJOUT ICI
+          "S_sevérité")  
 
 df_sub <- df[, vars]
 
@@ -412,10 +630,319 @@ km <- kmeans(X_scaled, centers = 3, nstart = 50)
 # ACP pour affichage
 acp <- prcomp(X_scaled, scale. = FALSE, center = FALSE)
 
+# Coordonnées des individus (axes 1 et 2)
+coord <- acp$x[, 1:2]
+
+# Centres des clusters dans le plan ACP
+centres_acp <- aggregate(coord,
+                          by = list(cluster = km$cluster),
+                          FUN = mean)
+
 plot(acp$x[,1], acp$x[,2],
      col = c("red","blue","darkgreen","purple")[km$cluster],
      pch = 19, cex = 0.6,
      xlab = "Axe 1 (ACP)", ylab = "Axe 2 (ACP)",
      main = "Clusters incluant la sévérité")
 
+# Ajout des centres des clusters
+points(centres_acp$PC1, centres_acp$PC2,
+       pch = 19, cex = 2, lwd = 2, col = "black")
+
+
+legend("topright",
+       legend = c(paste("Cluster", 1:k), "Centre"),
+       col    = c(colors[1:k], "black"),
+       pch    = c(rep(19, k), 19),
+       cex    = 0.6)
+resume_clusters_avec_severite <- df_comp %>%
+  group_by(cluster) %>%
+  summarise(
+    n = n(),
+
+    # Modalités dominantes (qualitatives)
+    lum_dominante  = names(which.max(table(lum2))),
+    atm_dominante  = names(which.max(table(atm3))),
+    col_dominante  = names(which.max(table(col3))),
+    situ_dominante = names(which.max(table(situ2))),
+    vma_dominante  = names(which.max(table(vma3))),
+
+    # Moyennes des véhicules
+    nb_voiture_moy   = mean(nb_voiture,   na.rm = TRUE),
+    nb_moto_moy      = mean(nb_moto,      na.rm = TRUE),
+    nb_velo_moy      = mean(nb_velo,      na.rm = TRUE),
+    nb_camion_moy    = mean(nb_camion,    na.rm = TRUE),
+    nb_transport_moy = mean(nb_transport, na.rm = TRUE),
+
+    # 🔹 Sévérité (AJOUT CLÉ)
+    severite_moy = mean(S_sevérité, na.rm = TRUE),
+    severite_sd  = sd(S_sevérité,   na.rm = TRUE)
+  )
+
+resume_clusters_avec_severite
+
+```
+
+# Fréquence des accidents :
+
+## Fréquences des accidents par mois :
+
+```{r}
+accidents_par_mois <- df %>%
+  group_by(mois) %>%
+  summarise(nb_accidents = n()) %>%
+  arrange(mois)
+
+accidents_par_mois
+```
+
+-   REPRESENTATION:
+
+```{r}
+plot(accidents_par_mois$mois, accidents_par_mois$nb_accidents,
+     type = "b", pch = 19,
+     xlab = "Mois (2019)",
+     ylab = "Nombre d'accidents",
+     main = "Nombre d'accidents par mois en France (2019)")
+
+```
+
+## Fréquences des accidents(/nb_conducteurs) par département :
+
+```{r}
+library(dplyr)
+
+tab_accidents <- df %>%
+  mutate(dep = as.character(dep)) %>%
+  filter(!is.na(dep), dep != "") %>%
+  group_by(dep) %>%
+  summarise(nb_accidents = n(), .groups = "drop")
+
+tab_conducteurs <- df_premium %>%
+  mutate(dep = as.character(dep),
+         nb_cond = as.numeric(nb.cond)) %>%
+  filter(!is.na(dep), dep != "", !is.na(nb_cond)) %>%
+  group_by(dep) %>%
+  summarise(nb_conducteurs = sum(nb_cond), .groups = "drop")
+
+table_frequence <- tab_accidents %>%
+  left_join(tab_conducteurs, by = "dep") %>%
+  filter(!is.na(nb_conducteurs), nb_conducteurs > 0) %>%
+  mutate(
+    frequence_par_conducteur = nb_accidents / (nb_conducteurs/nb_accidents)
+  ) %>%
+  arrange(desc(frequence_par_conducteur))
+
+table_frequence$nb_conducteurs = (table_frequence$nb_conducteurs / table_frequence$nb_accidents)
+
+table_frequence$frequence_par_1000conducteur = table_frequence$frequence_par_conducteur * 1000 
+
+View(table_frequence)
+
+```
+
+-   REPRESENTATION :
+
+```{r}
+top7 <- table_frequence %>%
+  arrange(desc(frequence_par_conducteur)) %>%
+  slice_head(n = 7)
+
+barplot(1000 * top7$frequence_par_conducteur,
+        names.arg = top7$dep,
+        las = 2,
+        ylab = "Fréquence par 1000 conducteur",
+        xlab = "département",
+        main = "Top 7 des départements par fréquence d'accidents (2019)")
+
+```
+
+## Modèle quasi poisson :
+
+### Modèle quasi poisson explicatif des accidents dans département de PARIS 75 (la zone la plus fréquente des accidents) :
+
+```{r}
+library(dplyr)
+
+df_75 <- df %>%
+  mutate(dep = as.character(dep)) %>%
+  filter(dep == "75")
+
+df_75_mois <- df_75 %>%
+  mutate(mois = as.integer(mois)) %>%
+  group_by(mois) %>%
+  summarise(
+    nb_accidents = n(),
+    prop_nuit = mean(lum2 == "Sans_lumiere", na.rm = TRUE),
+    prop_meteo_def = mean(atm3 %in% c("Défavorable", "Sévère"), na.rm = TRUE),
+    prop_vma80 = mean(vma3 == "80_plus", na.rm = TRUE),
+    prop_hors_circ = mean(situ2 == "Hors_circulation", na.rm = TRUE),
+    prop_routes_princ = mean(catr3 == "Routes_significatives", na.rm = TRUE),
+    .groups = "drop"
+  )
+
+mod_quasi_75 <- glm(
+  nb_accidents ~ prop_nuit + prop_meteo_def + prop_hors_circ + prop_routes_princ + prop_vma80,
+  family = quasipoisson(link = "log"),
+  data = df_75_mois
+)
+
+summary(mod_quasi_75)
+
+dispersion_75 <- sum(residuals(mod_quasi_75, type = "pearson")^2) /
+                 df.residual(mod_quasi_75)
+
+dispersion_75
+
+exp(coef(mod_quasi_75))
+```
+
+Interprétation variable par variable: Intercept = 554.18 : C’est le nombre moyen d’accidents attendu pour une période (ici un mois à Paris), quand toutes les variables explicatives valent 0
+
+prop_nuit → exp(β) = 0.0005945 : effet fortement négatif À Paris, une augmentation de la proportion d’accidents de nuit est associée à une diminution du nombre total d’accidents mensuels, toutes choses égales par ailleurs.
+
+prop_meteo_def → exp(β) = 4.86 : effet très positif et fort Un mois où la proportion d’accidents survenant sous des conditions météorologiques défavorables est plus élevée présente environ 4.9 fois plus d’accidents, toutes choses égales par ailleurs (Pluie, brouillard, chaussée glissante ⇒ augmentation de la probabilité de survenue d’accidents).
+
+
+### Modèle quasi poisson explicatif des accidents dans département de Belfort 90 (la zone la moins fréquente) :
+
+```{r}
+df_90 <- df %>%
+  mutate(dep = as.character(dep)) %>%
+  filter(dep == "90")
+df_90_mois <- df_90 %>%
+  mutate(mois = as.integer(mois)) %>%
+  group_by(mois) %>%
+  summarise(
+    nb_accidents = n(),
+    prop_nuit = mean(lum2 == "Sans_lumiere", na.rm = TRUE),
+    prop_meteo_def = mean(atm3 %in% c("Défavorable", "Sévère"), na.rm = TRUE),
+    prop_vma80 = mean(vma3 == "80_plus", na.rm = TRUE),
+    prop_hors_circ = mean(situ2 == "Hors_circulation", na.rm = TRUE),
+    prop_routes_princ = mean(catr3 == "Routes_significatives", na.rm = TRUE),
+    .groups = "drop"
+  )
+
+mod_quasi_90 <- glm(
+  nb_accidents ~ prop_nuit + prop_meteo_def + prop_hors_circ + prop_routes_princ + prop_vma80,
+  family = quasipoisson(link = "log"),
+  data = df_90_mois
+)
+
+summary(mod_quasi_90)
+
+dispersion_90 <- sum(residuals(mod_quasi_90, type = "pearson")^2) /
+                 df.residual(mod_quasi_90)
+
+dispersion_90
+
+exp(coef(mod_quasi_90))
+
+```
+
+## MAP DES ACCIDENTS :
+
+```{r}
+# ------------------------------------------------------------
+# INSTALLATION
+# ------------------------------------------------------------
+# install.packages("ggplot2")
+# install.packages("sf")          # indispensable maintenant
+# install.packages("dplyr")
+# install.packages("viridis")
+
+# ------------------------------------------------------------
+# CHARGEMENT DES LIBRAIRIES
+# ------------------------------------------------------------
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(viridis)
+
+# ------------------------------------------------------------
+# 1. TÉLÉCHARGER ET PRÉPARER LES DONNÉES GÉOGRAPHIQUES
+# ------------------------------------------------------------
+url <- "https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson"
+download.file(url, "departements.geojson", mode = "wb", quiet = TRUE)
+
+# Charger directement en sf
+departements <- st_read("departements.geojson", quiet = TRUE)
+
+# ------------------------------------------------------------
+# 2. FUSIONNER AVEC VOS DONNÉES D'ACCIDENTS
+# ------------------------------------------------------------
+# table_frequence doit avoir : dep, nb_accidents
+departements_data <- departements %>%
+  left_join(table_frequence, by = c("code" = "dep"))
+
+# ------------------------------------------------------------
+# 3. CALCULER LES CENTROÏDES
+# ------------------------------------------------------------
+centroids <- st_centroid(departements_data) %>%
+  st_coordinates() %>%
+  as.data.frame() %>%
+  bind_cols(dep = departements_data$code,
+            nb_accidents = departements_data$nb_accidents) %>%
+  filter(!is.na(nb_accidents))
+
+# ------------------------------------------------------------
+# 4. CRÉER LA CARTE
+# ------------------------------------------------------------
+carte <- ggplot() +
+  # Fond de carte
+  geom_sf(data = departements_data, fill = "#f7f7f7", color = "white", size = 0.4, alpha = 0.9) +
+  
+  # Points proportionnels
+  geom_point(
+    data = centroids,
+    aes(x = X, y = Y, size = nb_accidents),
+    color = "#e41a1c",
+    fill = "#ff9999",
+    alpha = 0.7,
+    shape = 21,
+    stroke = 1
+  ) +
+  
+  # Étiquettes
+  geom_text(
+    data = centroids %>% filter(nb_accidents > quantile(nb_accidents, 0.75)),
+    aes(x = X, y = Y, label = dep),
+    size = 2.5,
+    color = "black",
+    fontface = "bold",
+    vjust = -1.2
+  ) +
+  
+  # Échelles
+  scale_size_continuous(
+    name = "Nombre d'accidents",
+    range = c(3, 20),
+    breaks = quantile(centroids$nb_accidents, probs = c(0.25, 0.5, 0.75, 1)),
+    labels = function(x) format(round(x), big.mark = " ")
+  ) +
+  
+  labs(
+    title = "CARTE DES ACCIDENTS ROUTIERS PAR DÉPARTEMENT",
+    subtitle = "Année 2019 - Les cercles sont proportionnels au nombre d'accidents",
+    caption = "Source: ONISR | Données: fichier BAAC 2019"
+  ) +
+  
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16, margin = margin(b = 10)),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, color = "gray40", margin = margin(b = 15)),
+    plot.caption = element_text(hjust = 0.5, size = 9, color = "gray50", margin = margin(t = 15)),
+    legend.position = "right"
+  ) +
+  coord_sf(xlim = c(-5, 10), ylim = c(41, 52))
+
+# ------------------------------------------------------------
+# 5. AFFICHER ET SAUVEGARDER
+# ------------------------------------------------------------
+print(carte)
+
+ggsave("carte_accidents_departements.png", plot = carte, width = 12, height = 10, dpi = 300, bg = "white")
 ```
