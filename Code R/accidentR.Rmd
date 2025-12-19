@@ -243,6 +243,11 @@ summary(mod_final)
 ### comparaison entre résultats observés et théoriques du modèle simplifié :
 
 ```{r}
+# ============================================================
+# Comparaison observé / théorique
+# pour la luminosité (lum2) et l’atmosphère (atm3)
+# ============================================================
+
 # =========================
 # 1. Librairies
 # =========================
@@ -257,25 +262,37 @@ df <- df %>%
   mutate(S_pred = predict(mod_final, newdata = df))
 
 # =========================
-# 3. Calcul des sévérités
-# observée et théorique
-# pour chaque modalité de lum2
+# 3. Luminosité (lum2)
 # =========================
 df_lum2 <- df %>%
   filter(!is.na(lum2)) %>%
-  group_by(lum2) %>%
+  group_by(modalite = lum2) %>%
   summarise(
     severite_observee  = mean(S_sevérité, na.rm = TRUE),
     severite_theorique = mean(S_pred,     na.rm = TRUE),
     n = n(),
     .groups = "drop"
-  )
+  ) %>%
+  mutate(variable = "Luminosité")
 
 # =========================
-# 4. Passage au format long
+# 4. Atmosphère (atm3)
 # =========================
-df_lum2_long <- df_lum2 %>%
-  select(lum2, severite_observee, severite_theorique) %>%
+df_atm3 <- df %>%
+  filter(!is.na(atm3)) %>%
+  group_by(modalite = atm3) %>%
+  summarise(
+    severite_observee  = mean(S_sevérité, na.rm = TRUE),
+    severite_theorique = mean(S_pred,     na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(variable = "Atmosphère")
+
+# =========================
+# 5. Fusion + format long
+# =========================
+df_compare <- bind_rows(df_lum2, df_atm3) %>%
   pivot_longer(
     cols = c(severite_observee, severite_theorique),
     names_to = "type",
@@ -290,19 +307,22 @@ df_lum2_long <- df_lum2 %>%
   )
 
 # =========================
-# 5. Bar plot final
+# 6. Graphe final
 # =========================
-ggplot(df_lum2_long, aes(x = lum2, y = severite, fill = type)) +
+ggplot(df_compare,
+       aes(x = modalite, y = severite, fill = type)) +
   geom_col(position = "dodge", width = 0.7) +
+  facet_wrap(~ variable, scales = "free_x") +
   labs(
-    title = "Comparaison de la sévérité observée et théorique\nselon la luminosité (lum2)",
-    x = "Luminosité (lum2)",
+    title = "Comparaison des sévérités observée et théorique\nselon la luminosité et l’atmosphère",
+    x = "Modalité",
     y = "Score de sévérité"
   ) +
   theme_minimal() +
   theme(
     axis.text.x  = element_text(angle = 45, hjust = 1),
-    legend.title = element_blank()
+    legend.title = element_blank(),
+    strip.text   = element_text(face = "bold")
   )
 
 ```
